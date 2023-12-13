@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 )
 
 const (
 	GET = "GET"
 )
 
-func makeRequest(httpMethod, host, pipePath string) error {
+func makeRequest(httpMethod, host, pipePath string, includeProtocol bool) error {
 	if httpMethod == "" {
 		httpMethod = GET
 	}
@@ -31,8 +33,33 @@ func makeRequest(httpMethod, host, pipePath string) error {
 		return err
 	}
 
-	bodyStr, _ := io.ReadAll(resp.Body)
-	fmt.Println(string(bodyStr))
+	if includeProtocol {
+		fmt.Printf("%s %s\n", resp.Proto, resp.Status)
+
+		for k, v := range resp.Header {
+			fmt.Printf("%s: %s\n", k, strings.Join(v, " "))
+		}
+	}
+
+	defer resp.Body.Close()
+
+	for {
+
+		buff := make([]byte, 16)
+		_, err := resp.Body.Read(buff)
+
+		fmt.Printf("%s", buff)
+
+		if err != nil {
+			if err == io.EOF {
+				fmt.Fprintln(os.Stderr, "AAAAAAAA")
+				break
+			}
+			fmt.Errorf("error on reading response: %s", err)
+			return err
+		}
+
+	}
 
 	return nil
 }

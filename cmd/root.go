@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	pipePath   string
-	httpMethod string
+	pipePath        string
+	httpMethod      string
+	includeProtocol bool
 )
 
 var rootCmd = &cobra.Command{
@@ -28,6 +29,7 @@ func init() {
 	rootCmd.MarkPersistentFlagRequired("pipe")
 
 	rootCmd.PersistentFlags().StringVarP(&httpMethod, "request", "X", "", "Change the method to use when starting the transfer")
+	rootCmd.PersistentFlags().BoolVarP(&includeProtocol, "include", "i", false, "Include protocol response headers in the output")
 }
 
 func handleCommand(args []string) {
@@ -38,7 +40,7 @@ func handleCommand(args []string) {
 
 	host := args[0]
 
-	err := makeRequest(httpMethod, host, pipePath)
+	err := makeRequest(httpMethod, host, pipePath, includeProtocol)
 	if err != nil {
 		printErrorAndExit(err)
 	}
